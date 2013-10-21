@@ -1,6 +1,7 @@
 ﻿#coding=utf-8
 
 from justtranslate.forms import *
+from justtranslate.models import *
 
 from django.shortcuts import render
 
@@ -11,7 +12,15 @@ def add_article(request, template_name='add_article.html'):
         form = AddArticleForm(request.POST)
         if form.is_valid():
             article = form.cleaned_data['article']
-            decompose_article(article)
+            article_name = form.cleaned_data['article_name']
+            slist = decompose_article(article)
+            a = Article.objects.get(article_name=article_name)
+            if not a:
+                a = Ariticle(article_name=article_name)
+                a.save()
+            for s in slist:
+                s1 = Sentence(article=a,num=s['num'],pnum=s['pnum'],sentence=s['sentence'])
+                s1.save()
     else:
         form = AddArticleForm()
     return render(request, template_name, {'form': form})
@@ -42,5 +51,4 @@ def decompose_article(article):
                 else:
                     slist[-1]['sentence'] = slist[-1]['sentence'] + s
             pnum = pnum + 1
-    for s in slist:
-        print s['sentence'] + "***" + "\n"
+    return slist
